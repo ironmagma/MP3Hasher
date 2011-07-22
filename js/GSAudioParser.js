@@ -48,36 +48,56 @@ gs.GSAudioParser.prototype.hash = function(hashCallback) {
     function readGivenStartingByte(theByte) {
 
         var md5 = new MD5Builder();
+        var fsize = file.file.size;
 
-        function loopingAccumulateBuffers( curByte, fileLength, finalCallback, md5obj) {
-            assert(curByte <= fileLength, "curByte > fileLength");
+        // Part 1
 
-            var maxLen = Math.min(BUF, fileLength-curByte);
+        function loopingAccumulateBuffers (curByte) {
 
+            var maxLen = Math.min(BUF, fsize-curByte);
 
-            if ( (curByte + BUF) < (fileLength - ID3) ) {
-
+            if ( (curByte + BUF) < (fsize - ID3) ) {
                 read(curByte, maxLen, function(data) {
                         md5.update(data);
-
-                        loopingAccumulateBuffers(curByte + BUF, fileLength, finalCallback, md5obj); 
+                        loopingAccumulateBuffers(curByte + BUF, fsize); 
                 });
-
             }
-
             else {
-                finalCallback(md5obj.calc());
+                readRestOfData(curByte);
             }
 
         }
 
-        // Initial condition
-        loopingAccumulateBuffers(theByte, file.file.size, processBuffers, md5); 
-        console.log("start: "+theByte);
-    }
+        // Part 2
 
-    function processBuffers(x) {
-        console.log("The hash is "+x);
+        function readRestOfData (curByte) {
+            var numBytesToRead = fsize - curByte - ID3;
+            read(curByte, numBytesToRead, function(x) {
+                md5.update(x);
+                var curByte = fsize-ID3;
+                read(curByte, 3, function(x) {
+                    if (
+                        !(
+                            x[0] === 84 && // T
+                            x[1] === 65 && // A
+                            x[2] === 71    // G
+                        )
+                    ) {
+                        md5.update(x);
+                        read(curByte+3, fsize - curByte - 3, function(x) {
+                            md5.update(x);
+                            hashCallback(md5.calc());
+                        });
+                    }
+                    else {
+                        hashCallback(md5.calc());
+                    }
+                });
+            });
+        }
+
+        // Initial condition
+        loopingAccumulateBuffers(theByte); 
     }
 
 }

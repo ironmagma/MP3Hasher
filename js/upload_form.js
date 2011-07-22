@@ -37,7 +37,8 @@ function realizeAddedInFileList(howMany) {
 
         var fileinterface = new GSFileInterface(file);
         var parser = new GSAudioParser(fileinterface);
-        parser.hash();
+        var t1 = new Date().getTime();
+        parser.hash(function(x) { console.log("Hash: "+x); console.log((new Date().getTime()-t1)/1000) });
     }
 }
 
