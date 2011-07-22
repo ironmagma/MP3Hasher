@@ -30,10 +30,6 @@ $(".uploadfilesbutton").click(function() {
 });
 
 
-
-
-
-
 function realizeAddedInFileList(howMany) {
     for (var i = fileList.length-howMany; i < fileList.length; i++) {
         var file = fileList[i][0];
@@ -44,8 +40,6 @@ function realizeAddedInFileList(howMany) {
         parser.hash();
     }
 }
-
-
 
 
 filefield.change(function() {
