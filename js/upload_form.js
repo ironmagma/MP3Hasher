@@ -52,6 +52,7 @@ filefield.change(function() {
     }
 
     realizeAddedInFileList(l); // l tells how many were added
+                                // TODO make it properly handle multiple files
 });
 
 
